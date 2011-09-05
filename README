@@ -5,7 +5,11 @@ Converter of VexTab tablatures to LilyPond source.
 VexTab:  http://vexflow.com/vextab/
 LilyPond: http://lilypond.org
 
-Pre-pre-alpha: doesn't work at all yet... :(
+Pre-pre-alpha: isn't really usable yet... :(
+Step by step I'm going through the "VexTab Tutorial" at http://vexflow.com/vextab/tutorial.html
+and extending functionality of the converter to be able to handle correctly
+more and more examples.
+
 
 Usage:
 
@@ -16,3 +20,7 @@ and prints LilyPond source to standard output.
 
 $ ruby vextab2lily.rb my_tablature_file.vextab > my_tablature_file.ly
 $ lilypond my_tablature_file.ly
+
+For available options type
+
+$ ruby vextab2lily.rb --help

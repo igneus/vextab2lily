@@ -1,0 +1,15 @@
+vextab2lily
+
+Converter of VexTab tablatures to LilyPond source.
+
+VexTab:  http://vexflow.com/vextab/
+LilyPond: http://lilypond.org
+
+Pre-pre-alpha: doesn't work at all yet... :(
+
+Usage:
+
+You will need some Ruby interpreter ( http://ruby-lang.org ) to run vextab2lily.
+
+$ ruby vextab2lily.rb my_tablature_file.vextab > my_tablature_file.ly
+$ lilypond my_tablature_file.ly

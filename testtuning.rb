@@ -7,18 +7,18 @@ class TestTuning < Test::Unit::TestCase
   end
   
   def testE
-    assert_equal [:e, 2], @tuning.pitch(0, 0)
+    assert_equal [:e, 2], @tuning.pitch(1, 0)
   end
   
   def testF
-    assert_equal [:f, 2], @tuning.pitch(0, 1)
+    assert_equal [:f, 2], @tuning.pitch(1, 1)
   end
   
   def testGIS
-    assert_equal [:gis, 2], @tuning.pitch(0, 4)
+    assert_equal [:gis, 2], @tuning.pitch(1, 4)
   end
   
   def testOctave
-    assert_equal [:e, 3], @tuning.pitch(0, 12)
+    assert_equal [:e, 3], @tuning.pitch(1, 12)
   end
 end

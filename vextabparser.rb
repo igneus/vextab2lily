@@ -57,7 +57,7 @@ class VexTabParser
     "tablature" => "true",
     "clef" => "treble",
     "key" => "C",
-    "time" => "C",
+    "time" => nil,
     "tuning" => "standard"
   }
   
@@ -138,7 +138,7 @@ class Tuning
   end
   
   def pitch(string, fret)
-    p = @strings[string]
+    p = @strings[string-1]
     i = (NOTES.index(p[0]) + fret) % NOTES.size
     octave = (NOTES.index(p[0]) + fret) / NOTES.size
     return [NOTES[i], p[1]+octave]

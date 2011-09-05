@@ -11,5 +11,8 @@ Usage:
 
 You will need some Ruby interpreter ( http://ruby-lang.org ) to run vextab2lily.
 
+Script vextab2lily processes VexTab file given as a command-line argument
+and prints LilyPond source to standard output.
+
 $ ruby vextab2lily.rb my_tablature_file.vextab > my_tablature_file.ly
 $ lilypond my_tablature_file.ly

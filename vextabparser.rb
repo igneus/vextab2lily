@@ -158,6 +158,12 @@ class Stave
   
   attr_reader :config
   attr_reader :music
+  
+  # returns an instance of Tuning
+  
+  def tuning
+    TUNINGS[@config['tuning']]
+  end
 end
 
 # Note as defined in VexTab: a pair of fret and string number

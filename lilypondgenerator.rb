@@ -11,25 +11,41 @@ class LilyPondGenerator
     staves.each do |s|
       @stave_name += "E"
       create_pitches s
-      if s.config['notation'] == 'true' then
-        create_notation s
-      end
-      if s.config['tablature'] == 'true' then
-        create_tablature s
+      if s.config['notation'] == 'true' && s.config['tablature'] == 'true' then
+        create_notation_and_tablature s
+      else
+        if s.config['notation'] == 'true' then
+          create_notation s
+        elsif s.config['tablature'] == 'true' then
+          create_tablature s
+        else
+          STDERR.puts "Warning: no notation or tablature Staff! No output!"
+        end
       end
     end
   end
   
   def create_pitches(stave)
     @output.puts "pitches#{@stave_name} = {"
-    s.music.each do |m|
+    
+    stave.music.each {|m|
       if m == :bar then
         puts "|"
-      else if m.is_a? Note then
-        pitch = m.pitch(s.tuning)
-        puts 
+      elsif m.is_a?(Note) then
+        pitch = m.pitch(stave.tuning)
+        puts pitch[0]
       end
-    end
+    }
+    
+    @output.puts "}"
+  end
+  
+  def create_notation_and_tablature(stave)
+    @output.puts "\\score {"
+    @output.puts "<<"
+    create_notation(stave)
+    create_tablature(stave)
+    @output.puts ">>"
     @output.puts "}"
   end
   
@@ -44,4 +60,5 @@ class LilyPondGenerator
     @output.puts "\\pitches#{@stave_name}"      
     @output.puts "}"
   end
+  
 end

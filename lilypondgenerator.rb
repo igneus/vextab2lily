@@ -29,10 +29,26 @@ class LilyPondGenerator
   end
   
   # mapping of VexTab octaves to LilyPond octaves
-  Cs = [1 => "c,,", 2 => "c,", 3 => "c", 4 => "c'", 5 => "c''"]
+  # Cs = ["c,,,", "c,,", "c,", "c", "c'", "c''"]
+  Cs = ["c,,,,", "c,,,", "c,,", "c,", "c", "c'", "c''", "c'''", "c''''"]
   
   def create_pitches(stave)
-    @output.puts "pitches#{@stave_name} = {"
+    octave = stave.music.first.octave(stave.tuning)
+    
+    c = nil
+    if Tuning::NOTES.index(stave.music.first.pitch(stave.tuning)[0]) <= 3 then
+      if Cs[octave].nil?
+        raise "Generator Error: octave '#{octave}' unknown."
+      end
+      c = Cs[octave]
+    else
+      if Cs[octave+1].nil?
+        raise "Generator Error: octave '#{octave+1}' unknown."
+      end
+      c = Cs[octave + 1]
+    end
+        
+    @output.puts "pitches#{@stave_name} = \\relative #{c} {"
     
     case stave.config["time"]
     when nil
@@ -66,14 +82,18 @@ class LilyPondGenerator
     
     stave.music.each {|m|
       if m == :bar then
-        @output.puts "|"
+        if stave.config["time"].nil? then
+          @output.print "\\bar \"|\" "
+        else
+          @output.print "| "
+        end
       elsif m.is_a?(Note) then
         pitch = m.pitch(stave.tuning)
-        @output.puts "#{pitch[0]}\\#{m.string}"
+        @output.print "#{pitch[0]}\\#{m.string} "
       end
     }
     
-    @output.puts "}"
+    @output.puts "\n}"
   end
   
   def create_notation_and_tablature(stave)
@@ -86,26 +106,16 @@ class LilyPondGenerator
   end
   
   def create_notation(stave)
-    octave = stave.music.first.octave(stave.tuning)
-    if octave < 1 || octave >= Cs.size then
-      "Generator Error: octave '#{octave}' unknown."
-    end
-    p octave
-    
-    if Tuning::NOTES.index(stave.music.first.pitch(stave.tuning)[0]) <= 3 then
-      c = Cs[octave]
-    else
-      c = Cs[octave + 1]
-    end
-    
-    @output.puts "\\new Staff \\relative #{c} {"
+    @output.puts "\\new Staff {"
     @output.puts "\\clef #{stave.config["clef"]}"
+    @output.puts "\\transpose c c' {"
     @output.puts "\\pitches#{@stave_name}"
+    @output.puts "}"
     @output.puts "}"
   end
   
   def create_tablature(stave)
-    @output.puts "\\new TabStaff \\relative c' {"
+    @output.puts "\\new TabStaff {"
     @output.puts "\\pitches#{@stave_name}"      
     @output.puts "}"
   end

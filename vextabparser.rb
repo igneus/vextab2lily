@@ -97,7 +97,7 @@ class VexTabParser
     tokens.each do |notes|
       if notes == "|" then
         current_stave.music.push :bar
-        return
+        next
       end
       
       frets, string = notes.split "/"

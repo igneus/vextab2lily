@@ -28,6 +28,9 @@ class LilyPondGenerator
     end
   end
   
+  # mapping of VexTab octaves to LilyPond octaves
+  Cs = [1 => "c,,", 2 => "c,", 3 => "c", 4 => "c'", 5 => "c''"]
+  
   def create_pitches(stave)
     @output.puts "pitches#{@stave_name} = {"
     
@@ -44,6 +47,22 @@ class LilyPondGenerator
     else
       "Generator Error: unknown time '#{stave.config["time"]}'"
     end
+    
+    key = stave.config["key"]
+    t = key[0].downcase
+    if key[1] == "b"
+      t += "es"
+    elsif key[1] == "#"
+      t+= "is"
+    end
+    
+    if (key.size == 3 && key[2] == "m") || (key.size == 2 && key[1] == "m") then
+      v = "\\minor"
+    else
+      v = "\\major"
+    end
+    
+    @output.puts "\\key #{t} #{v}"
     
     stave.music.each {|m|
       if m == :bar then
@@ -67,7 +86,20 @@ class LilyPondGenerator
   end
   
   def create_notation(stave)
-    @output.puts "\\new Staff \\relative c'' {"
+    octave = stave.music.first.octave(stave.tuning)
+    if octave < 1 || octave >= Cs.size then
+      "Generator Error: octave '#{octave}' unknown."
+    end
+    p octave
+    
+    if Tuning::NOTES.index(stave.music.first.pitch(stave.tuning)[0]) <= 3 then
+      c = Cs[octave]
+    else
+      c = Cs[octave + 1]
+    end
+    
+    @output.puts "\\new Staff \\relative #{c} {"
+    @output.puts "\\clef #{stave.config["clef"]}"
     @output.puts "\\pitches#{@stave_name}"
     @output.puts "}"
   end

@@ -3,22 +3,26 @@ require './vextabparser.rb'
 
 class TestTuning < Test::Unit::TestCase
   def setup
-    @tuning = Tuning.new(:e, 2, :b, 2, :g, 2, :d, 1, :a, 1, :e, 1)
+    @tuning = Tuning.new(:e, 5, :b, 4, :g, 4, :d, 4, :a, 3, :e, 3)
   end
   
   def testE
-    assert_equal [:e, 2], @tuning.pitch(1, 0)
+    assert_equal [:e, 5], @tuning.pitch(1, 0)
   end
   
   def testF
-    assert_equal [:f, 2], @tuning.pitch(1, 1)
+    assert_equal [:f, 5], @tuning.pitch(1, 1)
   end
   
   def testGIS
-    assert_equal [:gis, 2], @tuning.pitch(1, 4)
+    assert_equal [:gis, 5], @tuning.pitch(1, 4)
+  end
+  
+  def testPitchInHigherOctave
+    assert_equal [:e, 6], @tuning.pitch(1, 12)
   end
   
   def testOctave
-    assert_equal [:e, 3], @tuning.pitch(1, 12)
+    assert_equal 4, Note.new(2, 2).octave(@tuning), "A played on G string"
   end
 end

@@ -148,7 +148,7 @@ end
 class Stave
   
   TUNINGS = {
-    "standard" => Tuning.new(:e, 2, :b, 2, :g, 2, :d, 1, :a, 1, :e, 1)
+    "standard" => Tuning.new(:e, 5, :b, 4, :g, 4, :d, 4, :a, 3, :e, 3)
   }
   
   def initialize
@@ -173,11 +173,26 @@ class Note
     @fret = fret
     @string = string
   end
-  
+    
   attr_reader :fret
   attr_reader :string
   
   def pitch(tuning)
     tuning.pitch(@string, @fret)
+  end
+  
+  def octave(tuning)
+    pitch(tuning)[1]
+  end
+  
+  # numeric "absolute" value of a pitch
+  
+  def numeric_pitch(tuning)
+    a = pitch tuning
+    return Tuning::NOTES.index(a[0]) + a[1]*Tuning::NOTES.size
+  end
+  
+  def difference(note, tuning)
+    return numeric_pitch(tuning) - note.numeric_pitch(tuning)
   end
 end

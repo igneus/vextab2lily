@@ -16,14 +16,28 @@ class LilyPondOutputFormatter < DelegateClass(File)
   end
   
   def puts(s="\n")
-    if s =~ /\{\s*$/ || s =~ /<</ then
-      r = @io.puts indentation_space+s
-      indent
-    elsif s=~ /\}\s*$/ || s =~ />>/ then
-      unindent
-      r = @io.puts indentation_space+s
+    if @last_output_method == :print then
+      # not at the beginning of a line - without indentation
+      if s =~ /\{\s*$/ || s =~ /<</ then
+        r = @io.puts s
+        indent
+      elsif s=~ /\}\s*$/ || s =~ />>/ then
+        unindent
+        r = @io.puts s
+      else
+        r = @io.puts s
+      end
+
     else
-      r = @io.puts indentation_space+s
+      if s =~ /\{\s*$/ || s =~ /<</ then
+        r = @io.puts indentation_space+s
+        indent
+      elsif s=~ /\}\s*$/ || s =~ />>/ then
+        unindent
+        r = @io.puts indentation_space+s
+      else
+        r = @io.puts indentation_space+s
+      end
     end
     
     @last_output_method = :puts

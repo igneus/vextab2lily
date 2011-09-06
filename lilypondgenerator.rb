@@ -85,9 +85,9 @@ class LilyPondGenerator
     stave.music.each {|m|
       if m == :bar then
         if stave.config["time"].nil? then
-          @output.print "\\bar \"|\" "
+          @output.puts "\\bar \"|\" "
         else
-          @output.print "| "
+          @output.puts "| "
         end
       elsif m.is_a?(Note) then
         pitch = m.pitch(stave.tuning)

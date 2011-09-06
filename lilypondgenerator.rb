@@ -89,9 +89,23 @@ class LilyPondGenerator
         else
           @output.puts "| "
         end
-      elsif m.is_a?(Note) then
+      elsif m.is_a? Note then
         pitch = m.pitch(stave.tuning)
         @output.print "#{pitch[0]}\\#{m.string} "
+      elsif m.is_a? Bend then
+        m.notes.each_with_index {|n,i|
+          pitch = n.pitch(stave.tuning)
+          @output.print "#{pitch[0]}\\#{n.string}"
+          if i == 0 then
+            @output.print "( "
+          elsif i == m.notes.size - 1 then
+            @output.print ") "
+          else
+            @output.print " "
+          end
+        }
+      else
+        raise "Generator Error: Unknown object #{m} in the parsed data."
       end
     }
     

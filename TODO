@@ -1,0 +1,4 @@
+TODO
+
+- if the next note is in a different octave, add ' od , to it
+- default note duration is 1/8 like in VexFlow, not 1/4 as usual in LilyPond

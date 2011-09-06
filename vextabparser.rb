@@ -116,7 +116,13 @@ class VexTabParser
     parsed_expression_backup = notes.dup
     
     awaiting = :frets
-    frets_heap = []
+    
+    # find first string number:
+    begin
+      string = notes.match(/\/(?<n>\d+)/)[:n].to_i
+    rescue NoMethodError
+      raise "Parse Error: No string number found at line #{@line_number} in expression '#{notes}'"
+    end
     
     while ! notes.empty? do
       token = next_token(notes)
@@ -127,17 +133,34 @@ class VexTabParser
       case token
       when /\d+/
         if awaiting == :frets then
-          frets_heap.push token.to_i
-        else
-          string = token.to_i
-          frets_heap.each {|f| 
-            current_stave.music.push Note.new(f, string)
-          }
-          frets_heap = []
+          current_stave.music.push Note.new(token.to_i, string)
         end
       when "/"
         awaiting = :string
       when "-"
+      when "b"
+        if awaiting != :frets then
+          raise "Error: unexpected 'b' at line #{@line_number} in expression '#{parsed_expression_backup}'"
+        end
+        
+        unless current_stave.music.last.is_a? Bend
+          # create new Bend first
+          m = current_stave.music.pop
+          b = Bend.new
+          b.add_note m
+          current_stave.music.push b
+        end
+        
+        # read following token - must be a fret number
+        n = next_token(notes)
+        unless n =~ /^\d+$/
+          raise "Parse error: fret number expected after 'b' at line #{@line_number} in expression 'parsed_expression_backup'."
+        end
+        
+        current_stave.music.last.add_note Note.new(n.to_i, string)
+        
+      when "v"
+      when "V"
       end
     end
   end
@@ -151,7 +174,7 @@ class VexTabParser
   # cuts first valid token from the beginning of the expression and returns it
   
   def next_token(expression)
-    expression.slice!(/^(\d+|[\)\(-tbhpsvV\.\/\|])/)
+    expression.slice!(/^\d+|[\)\(-tbhpsvV\.\/\|]/)
   end
   
   def current_stave
@@ -206,10 +229,12 @@ class Note
   def initialize(fret, string)
     @fret = fret
     @string = string
+    @vibrato = false
   end
     
   attr_reader :fret
   attr_reader :string
+  attr_accessor :vibrato
   
   def pitch(tuning)
     tuning.pitch(@string, @fret)
@@ -232,11 +257,20 @@ class Note
 end
 
 class Bend
-  def initialize(from, to)
-    @from = from
-    @to = to
+  def initialize
+    @notes = []
   end
-end
-
-class BendAndRelease < Bend
+  
+  attr_reader :notes
+  
+  def add_note(n)
+    unless n.is_a? Note
+      raise "No #{n.class} may be inserted to a Bend. Only Notes are allowed."
+    end
+    @notes << n
+  end
+  
+  def bend_and_release?
+    @notes.size == 3 && @notes.first.fret == @notes.last.fret
+  end
 end

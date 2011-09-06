@@ -1,4 +1,4 @@
-# wrapper for a File - formats the written output to be nice readable
+# wrapper for a File instance - formats the written output to be nice readable
 # LilyPond source
 
 # delegates all methods of File, reimplements just File#puts and File#print
@@ -54,7 +54,7 @@ class LilyPondOutputFormatter < DelegateClass(File)
   end
   
   def unindent
-    @indentation_level -= 1
+    @indentation_level -= 1 if @indentation_level - 1 >= 0
   end
   
   def indentation_space

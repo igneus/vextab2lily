@@ -20,6 +20,9 @@ OptionParser.new do |opts|
   opts.on("-o", "--output [FILE]", "Output to file; default name is name of input file + .ly") do |f|
     if f then
       options[:to_file] = f
+    else
+      # -o without argument: default output file name
+      options[:to_file] = true
     end
   end
   
@@ -39,11 +42,11 @@ end
 
 if options[:to_file] == true then
   # output to file, but file name hasn't been explicitly defined
-  
+  # the output file will be placed in the working directory
   if m = ARGV[0].match(/^(?<name>.+)\.[a-zA-Z]+$/) then
-    options[:to_file] = m[:name]+".ly"
+    options[:to_file] = File.basename(m[:name]+".ly")
   else
-    options[:to_file] = ARGV[0]+".ly"
+    options[:to_file] = File.basename(ARGV[0]+".ly")
   end
 end
 

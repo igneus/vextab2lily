@@ -14,7 +14,7 @@ class LilyPondGenerator
     @stave_name = 'Stave'
     
     staves.each do |s|
-      @stave_name += "E"
+      @stave_name += "E" # automatic unique stave names - a bit stupid sounding...
       create_pitches s
       if s.config['notation'] == 'true' && s.config['tablature'] == 'true' then
         create_notation_and_tablature s

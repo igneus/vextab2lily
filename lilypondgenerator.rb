@@ -1,7 +1,9 @@
+require './lilypondoutputformatter.rb'
+
 class LilyPondGenerator
   
   def generate(staves, output=STDOUT)
-    @output = output
+    @output = LilyPondOutputFormatter.new output
     
     @output.puts "\\version \"2.14.2\""
     @output.puts

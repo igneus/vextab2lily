@@ -86,6 +86,8 @@ class VexTabParser
     end
   end
   
+  # parse line beginning with keyword "notes"
+  
   def parse_notes_line(tokens)
     unless current_stave
       raise "Error: cannot add notes, no stave has been defined yet - at line #{@line_number}."
@@ -100,24 +102,56 @@ class VexTabParser
         next
       end
       
-      frets, string = notes.split "/"
-      unless frets && string
-        raise "Parse Error: invalid notes expression '#{notes}' at line #{@line_number}: frets or string missing"
-      end
-      unless string =~ /^[0-9]+$/
-        raise "Parse Error: invalid string '#{string}' at line #{@line_number}."
-      end
-      
-      string = string.to_i
-      
-      frets.split("-").each do |f|
-        unless f =~ /^[0-9]+$/
-          raise "Parse Error: invalid fret '#{f}' at line #{@line_number}."
-        end
-        
-        current_stave.music.push Note.new(f.to_i, string)
+      if notes =~ /\(/ then
+        parse_chords_expression
+      else
+        parse_notes_expression(notes)
       end
     end
+  end
+  
+  # parse one of the space-separated expressions
+  
+  def parse_notes_expression(notes)
+    parsed_expression_backup = notes.dup
+    
+    awaiting = :frets
+    frets_heap = []
+    
+    while ! notes.empty? do
+      token = next_token(notes)
+      unless token
+        raise "Parse error: unable to parse expression '#{parsed_expression_backup}' at line #{@line_number}. Unparsable rest is '#{notes}'"
+      end
+      
+      case token
+      when /\d+/
+        if awaiting == :frets then
+          frets_heap.push token.to_i
+        else
+          string = token.to_i
+          frets_heap.each {|f| 
+            current_stave.music.push Note.new(f, string)
+          }
+          frets_heap = []
+        end
+      when "/"
+        awaiting = :string
+      when "-"
+      end
+    end
+  end
+  
+  # special case: expression containing chords
+  
+  def parse_chords_expression(expression)
+    raise "Chords not supported yet"
+  end
+  
+  # cuts first valid token from the beginning of the expression and returns it
+  
+  def next_token(expression)
+    expression.slice!(/^(\d+|[\)\(-tbhpsvV\.\/\|])/)
   end
   
   def current_stave
@@ -195,4 +229,14 @@ class Note
   def difference(note, tuning)
     return numeric_pitch(tuning) - note.numeric_pitch(tuning)
   end
+end
+
+class Bend
+  def initialize(from, to)
+    @from = from
+    @to = to
+  end
+end
+
+class BendAndRelease < Bend
 end

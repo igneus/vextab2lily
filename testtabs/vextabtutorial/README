@@ -1,0 +1,5 @@
+Examples copied from the VexTab Tutorial ( http://vexflow.com/vextab/tutorial.html )
+
+Compare the output of VexFlow and output of vextab2lily processed
+by LilyPond to see how much of the VexFlow functionality has already
+been implemented in vextab2lily.

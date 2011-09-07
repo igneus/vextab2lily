@@ -28,7 +28,7 @@ class LilyPondGenerator
     end
   end
   
-  def print_note(note, stave, last_note_pitch)
+  def print_note(note, stave, last_note_pitch, add="")
     pitch = note.pitch(stave.tuning)
     numpitch = note.numeric_pitch(stave.tuning)
     if (numpitch - last_note_pitch) > Tuning::OCTAVE_STEPS / 2 then
@@ -39,12 +39,19 @@ class LilyPondGenerator
       steps = ((numpitch - last_note_pitch).abs / Tuning::OCTAVE_STEPS)
       steps = 1 if steps < 1
       octave_modifier = "," * steps
-      puts numpitch, last_note_pitch
-      p pitch
+      # puts numpitch, last_note_pitch
+      # p pitch
     else
       octave_modifier = ""
     end
-    @output.print "#{pitch[0]}#{octave_modifier}\\#{note.string} "
+    if note.vibrato then
+      @output.ensure_new_line
+      @output.puts "\\override TextSpanner #'style = #'trill"
+    end
+    @output.print "#{pitch[0]}#{octave_modifier}\\#{note.string}#{add} "
+    if note.vibrato then
+      @output.print "\\startTextSpan \\hideNotes #{pitch[0]}\\#{note.string} \\stopTextSpan \\unHideNotes "
+    end
   end
   
   # mapping of VexTab octaves to LilyPond octaves
@@ -108,13 +115,14 @@ class LilyPondGenerator
         last_note_pitch = m.numeric_pitch(stave.tuning)
       elsif m.is_a? Bend then
         m.notes.each_with_index {|n,i|
-          print_note(n, stave, last_note_pitch)
           last_note_pitch = n.numeric_pitch(stave.tuning)
           if i == 0 then
+            print_note(n, stave, last_note_pitch)
             @output.print "( "
           elsif i == m.notes.size - 1 then
-            @output.print ") "
+            print_note(n, stave, last_note_pitch, ")")
           else
+            print_note(n, stave, last_note_pitch)
             @output.print " "
           end
         }

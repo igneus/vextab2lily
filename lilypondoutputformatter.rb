@@ -63,6 +63,13 @@ class LilyPondOutputFormatter < DelegateClass(File)
     return r
   end
   
+  def ensure_new_line
+    if @last_output_method == :print then
+      @last_output_method = :puts
+      @io.puts
+    end
+  end
+  
   def indent
     @indentation_level += 1
   end

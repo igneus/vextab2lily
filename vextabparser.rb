@@ -36,6 +36,8 @@ class VexTabParser
       parse_stave_line(tokens)
     when "notes"
       parse_notes_line(tokens)
+    when "#"
+      # comment - my extension to the VexTab language
     else
       raise "Parse Error: invalid keyword '#{tokens.first}' at line #{@line_number}."
     end
@@ -160,7 +162,9 @@ class VexTabParser
         current_stave.music.last.add_note Note.new(n.to_i, string)
         
       when "v"
+        current_stave.music.last.vibrato = :vibrato
       when "V"
+        current_stave.music.last.vibrato = :harsh_vibrato
       end
     end
   end
@@ -277,5 +281,9 @@ class Bend
   
   def bend_and_release?
     @notes.size == 3 && @notes.first.fret == @notes.last.fret
+  end
+  
+  def vibrato=(v)
+    @notes.last.vibrato = v
   end
 end

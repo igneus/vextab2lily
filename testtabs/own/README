@@ -1,1 +1,3 @@
 Tabs designed only for testing of vextab2lily functionality and features.
+
+pitchskips.vextab: is vextab2lily able to handle over-octave intervals?

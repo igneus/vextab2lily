@@ -32,9 +32,13 @@ class LilyPondGenerator
     pitch = note.pitch(stave.tuning)
     numpitch = note.numeric_pitch(stave.tuning)
     if (numpitch - last_note_pitch) > Tuning::OCTAVE_STEPS / 2 then
-      octave_modifier = "'" * (((numpitch - last_note_pitch).abs / Tuning::OCTAVE_STEPS) + 1)
+      steps = ((numpitch - last_note_pitch).abs / Tuning::OCTAVE_STEPS)
+      steps = 1 if steps < 1
+      octave_modifier = "'" * steps
     elsif (numpitch - last_note_pitch) < - (Tuning::OCTAVE_STEPS / 2) then
-      octave_modifier = "," * (((numpitch - last_note_pitch).abs / Tuning::OCTAVE_STEPS) + 1)
+      steps = ((numpitch - last_note_pitch).abs / Tuning::OCTAVE_STEPS)
+      steps = 1 if steps < 1
+      octave_modifier = "," * steps
       puts numpitch, last_note_pitch
       p pitch
     else

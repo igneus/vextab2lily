@@ -18,16 +18,29 @@ class LilyPondGenerator
       create_pitches s
       if s.config['notation'] == 'true' && s.config['tablature'] == 'true' then
         create_notation_and_tablature s
+      elsif s.config['notation'] == 'true' then
+        create_notation s
+      elsif s.config['tablature'] == 'true' then
+        create_tablature s
       else
-        if s.config['notation'] == 'true' then
-          create_notation s
-        elsif s.config['tablature'] == 'true' then
-          create_tablature s
-        else
-          STDERR.puts "Warning: no notation or tablature Staff! No output!"
-        end
+        STDERR.puts "Warning: no notation or tablature Staff! No output!"
       end
     end
+  end
+  
+  def print_note(note, stave, last_note_pitch)
+    pitch = note.pitch(stave.tuning)
+    numpitch = note.numeric_pitch(stave.tuning)
+    if (numpitch - last_note_pitch) > Tuning::OCTAVE_STEPS / 2 then
+      octave_modifier = "'" * (((numpitch - last_note_pitch).abs / Tuning::OCTAVE_STEPS) + 1)
+    elsif (numpitch - last_note_pitch) < - (Tuning::OCTAVE_STEPS / 2) then
+      octave_modifier = "," * (((numpitch - last_note_pitch).abs / Tuning::OCTAVE_STEPS) + 1)
+      puts numpitch, last_note_pitch
+      p pitch
+    else
+      octave_modifier = ""
+    end
+    @output.print "#{pitch[0]}#{octave_modifier}\\#{note.string} "
   end
   
   # mapping of VexTab octaves to LilyPond octaves
@@ -38,18 +51,13 @@ class LilyPondGenerator
     octave = stave.music.first.octave(stave.tuning)
     
     c = nil
-    if Tuning::NOTES.index(stave.music.first.pitch(stave.tuning)[0]) <= 3 then
-      if Cs[octave].nil?
-        raise "Generator Error: octave '#{octave}' unknown."
-      end
-      c = Cs[octave]
-    else
-      if Cs[octave+1].nil?
-        raise "Generator Error: octave '#{octave+1}' unknown."
-      end
-      c = Cs[octave + 1]
+    if Tuning::NOTES.index(stave.music.first.pitch(stave.tuning)[0]) > Tuning::OCTAVE_STEPS/2 then
+      octave += 1
     end
-        
+    if Cs[octave].nil?
+      raise "Generator Error: octave '#{octave}' unknown."
+    end
+    c = Cs[octave]
     @output.puts "pitches#{@stave_name} = \\relative #{c} {"
     
     case stave.config["time"]
@@ -82,7 +90,9 @@ class LilyPondGenerator
     
     @output.puts "\\key #{t} #{v}"
     
-    stave.music.each {|m|
+    last_note_pitch = Tuning.numeric_pitch [:c, octave]
+    
+    stave.music.each_with_index {|m|
       if m == :bar then
         if stave.config["time"].nil? then
           @output.puts "\\bar \"|\" "
@@ -90,12 +100,12 @@ class LilyPondGenerator
           @output.puts "| "
         end
       elsif m.is_a? Note then
-        pitch = m.pitch(stave.tuning)
-        @output.print "#{pitch[0]}\\#{m.string} "
+        print_note(m, stave, last_note_pitch)
+        last_note_pitch = m.numeric_pitch(stave.tuning)
       elsif m.is_a? Bend then
         m.notes.each_with_index {|n,i|
-          pitch = n.pitch(stave.tuning)
-          @output.print "#{pitch[0]}\\#{n.string}"
+          print_note(n, stave, last_note_pitch)
+          last_note_pitch = n.numeric_pitch(stave.tuning)
           if i == 0 then
             @output.print "( "
           elsif i == m.notes.size - 1 then
@@ -137,3 +147,4 @@ class LilyPondGenerator
   end
   
 end
+

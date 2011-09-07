@@ -184,6 +184,7 @@ end
 
 class Tuning
   NOTES = [:c, :cis, :d, :dis, :e, :f, :fis, :g, :gis, :a, :ais, :b]
+  OCTAVE_STEPS = NOTES.size
   
   def initialize(*notes_and_octaves)
     @strings = []
@@ -199,6 +200,10 @@ class Tuning
     i = (NOTES.index(p[0]) + fret) % NOTES.size
     octave = (NOTES.index(p[0]) + fret) / NOTES.size
     return [NOTES[i], p[1]+octave]
+  end
+  
+  def Tuning.numeric_pitch(pitch)
+    Tuning::NOTES.index(pitch[0]) + pitch[1]*NOTES.size
   end
 end
 
@@ -248,7 +253,7 @@ class Note
   
   def numeric_pitch(tuning)
     a = pitch tuning
-    return Tuning::NOTES.index(a[0]) + a[1]*Tuning::NOTES.size
+    return Tuning.numeric_pitch a
   end
   
   def difference(note, tuning)

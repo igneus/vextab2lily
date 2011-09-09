@@ -1,4 +1,7 @@
 TODO
 
-- if the next note is in a different octave, add ' od , to it
 - default note duration is 1/8 like in VexFlow, not 1/4 as usual in LilyPond
+- option not to start a new score at each tabstave keyword, but to
+   check for possible key change and continue in a single score
+   (because VexFlow can't wrap long lines and thus many short staves
+   have to be written, which is not logical to do in LilyPond)

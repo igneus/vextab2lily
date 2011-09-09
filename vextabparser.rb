@@ -104,11 +104,7 @@ class VexTabParser
         next
       end
       
-      if notes =~ /\(/ then
-        parse_chords_expression
-      else
-        parse_notes_expression(notes)
-      end
+      parse_notes_expression(notes)
     end
   end
   
@@ -118,13 +114,10 @@ class VexTabParser
     parsed_expression_backup = notes.dup
     
     awaiting = :frets
+    chord = false
     
     # find first string number:
-    begin
-      string = notes.match(/\/(?<n>\d+)/)[:n].to_i
-    rescue NoMethodError
-      raise "Parse Error: No string number found at line #{@line_number} in expression '#{notes}'"
-    end
+    string = next_string_number notes
     
     while ! notes.empty? do
       token = next_token(notes)
@@ -135,11 +128,21 @@ class VexTabParser
       case token
       when /\d+/
         if awaiting == :frets then
-          current_stave.music.push Note.new(token.to_i, string)
+          new_note = Note.new(token.to_i, string)
+          if chord then
+            current_stave.music.last.add_note new_note
+          else
+            current_stave.music.push new_note
+          end
+        else
+          awaiting = :frets
         end
       when "/"
         awaiting = :string
       when "-"
+        if chord then
+          raise "Parse error: unexpected '-' in chord at line #{@line_number}."
+        end
       when "b"
         if awaiting != :frets then
           raise "Error: unexpected 'b' at line #{@line_number} in expression '#{parsed_expression_backup}'"
@@ -156,7 +159,7 @@ class VexTabParser
         # read following token - must be a fret number
         n = next_token(notes)
         unless n =~ /^\d+$/
-          raise "Parse error: fret number expected after 'b' at line #{@line_number} in expression 'parsed_expression_backup'."
+          raise "Parse error: fret number expected after 'b' at line #{@line_number} in expression '#{parsed_expression_backup}'."
         end
         
         current_stave.music.last.add_note Note.new(n.to_i, string)
@@ -165,20 +168,40 @@ class VexTabParser
         current_stave.music.last.vibrato = :vibrato
       when "V"
         current_stave.music.last.vibrato = :harsh_vibrato
+      when "("
+        chord = true
+        current_stave.music.push Chord.new
+        string = next_string_number notes
+      when ")"
+        chord = false
+      when "."
+        unless chord
+          raise "Unexpected '.' out of chord at line #{@line_number}"
+        end
+        awaiting = :frets
+        string = next_string_number notes
+      else
+        raise "Parse Error: unknown token '#{token}' in expression '#{parsed_expression_backup}' at line #{@line_number}."
       end
     end
-  end
-  
-  # special case: expression containing chords
-  
-  def parse_chords_expression(expression)
-    raise "Chords not supported yet"
   end
   
   # cuts first valid token from the beginning of the expression and returns it
   
   def next_token(expression)
     expression.slice!(/^\d+|[\)\(-tbhpsvV\.\/\|]/)
+  end
+  
+  # finds first string number in the expression and returns it as number
+  
+  def next_string_number(expression)
+    begin
+      s = expression.match(/\/(?<n>\d+)/)[:n].to_i
+    rescue NoMethodError
+      raise "Parse Error: No string number found at line #{@line_number} in expression '#{notes}'"
+    end
+    
+    return s
   end
   
   def current_stave
@@ -265,7 +288,31 @@ class Note
   end
 end
 
-class Bend
+class NotesGroup
+  def initialize
+    @notes = []
+  end
+  
+  attr_reader :notes
+  
+  def add_note(n)
+    @notes << n
+  end
+  
+  def octave(tuning)
+    @notes.first.octave(tuning)
+  end
+  
+  def pitch(tuning)
+    @notes.first.pitch(tuning)
+  end
+  
+  def numeric_pitch(tuning)
+    @notes.first.numeric_pitch(tuning)
+  end
+end
+
+class Bend < NotesGroup
   def initialize
     @notes = []
   end
@@ -276,7 +323,7 @@ class Bend
     unless n.is_a? Note
       raise "No #{n.class} may be inserted to a Bend. Only Notes are allowed."
     end
-    @notes << n
+    super(n)
   end
   
   def bend_and_release?
@@ -286,4 +333,7 @@ class Bend
   def vibrato=(v)
     @notes.last.vibrato = v
   end
+end
+
+class Chord < NotesGroup
 end

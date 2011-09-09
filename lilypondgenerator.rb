@@ -115,7 +115,6 @@ class LilyPondGenerator
         last_note_pitch = m.numeric_pitch(stave.tuning)
       elsif m.is_a? Bend then
         m.notes.each_with_index {|n,i|
-          last_note_pitch = n.numeric_pitch(stave.tuning)
           if i == 0 then
             print_note(n, stave, last_note_pitch)
             @output.print "( "
@@ -125,7 +124,15 @@ class LilyPondGenerator
             print_note(n, stave, last_note_pitch)
             @output.print " "
           end
+          last_note_pitch = n.numeric_pitch(stave.tuning)
         }
+      elsif m.is_a? Chord then
+        @output.print "<"
+        m.notes.each {|n|
+          print_note(n, stave, last_note_pitch)
+          last_note_pitch = n.numeric_pitch(stave.tuning)
+        }
+        @output.print "> "
       else
         raise "Generator Error: Unknown object #{m} in the parsed data."
       end

@@ -25,19 +25,22 @@ class LilyPondGenerator
       else
         STDERR.puts "Warning: no notation or tablature Staff! No output!"
       end
+      @output.puts
     end
   end
   
   def print_note(note, stave, last_note_pitch, add="")
     pitch = note.pitch(stave.tuning)
     numpitch = note.numeric_pitch(stave.tuning)
-    if (numpitch - last_note_pitch) > Tuning::OCTAVE_STEPS / 2 then
-      steps = ((numpitch - last_note_pitch).abs / Tuning::OCTAVE_STEPS)
-      steps = 1 if steps < 1
+    if (numpitch - last_note_pitch) > (Tuning::OCTAVE_STEPS / 2) then
+      steps = ((numpitch - last_note_pitch).abs.to_f / Tuning::OCTAVE_STEPS)
+      # steps = 1 if steps < 1
+      steps += 1 if ((numpitch - last_note_pitch).abs % Tuning::OCTAVE_STEPS) > (Tuning::OCTAVE_STEPS / 2) 
       octave_modifier = "'" * steps
     elsif (numpitch - last_note_pitch) < - (Tuning::OCTAVE_STEPS / 2) then
-      steps = ((numpitch - last_note_pitch).abs / Tuning::OCTAVE_STEPS)
-      steps = 1 if steps < 1
+      steps = ((numpitch - last_note_pitch).abs.to_f / Tuning::OCTAVE_STEPS)
+      # steps = 1 if steps < 1
+      steps += 1 if ((numpitch - last_note_pitch).abs % Tuning::OCTAVE_STEPS) > (Tuning::OCTAVE_STEPS / 2) 
       octave_modifier = "," * steps
       # puts numpitch, last_note_pitch
       # p pitch

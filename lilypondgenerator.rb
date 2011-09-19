@@ -131,11 +131,15 @@ class LilyPondGenerator
         }
       elsif m.is_a? Chord then
         @output.print "<"
+        l = last_note_pitch
         m.notes.each {|n|
-          print_note(n, stave, last_note_pitch)
-          last_note_pitch = n.numeric_pitch(stave.tuning)
+          print_note(n, stave, l)
+          l = n.numeric_pitch(stave.tuning)
         }
         @output.print "> "
+        
+        # this is a bit tricky - but LilyPond handles chords this way:
+        last_note_pitch = m.notes.first.numeric_pitch(stave.tuning)
       else
         raise "Generator Error: Unknown object #{m} in the parsed data."
       end
